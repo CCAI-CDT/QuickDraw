@@ -97,13 +97,14 @@ def train(opt):
             optimizer.step()
             training_metrics = get_evaluation(labels.cpu().numpy(), predictions.cpu().detach().numpy(),
                                               list_metrics=["accuracy"])
-            print("Epoch: {}/{}, Iteration: {}/{}, Lr: {}, Loss: {}, Accuracy: {}".format(
-                epoch + 1,
-                opt.num_epochs,
-                iter + 1,
-                num_iter_per_epoch,
-                optimizer.param_groups[0]['lr'],
-                loss, training_metrics["accuracy"]))
+            if (iter + 1) % 100 == 0:
+                print("Epoch: {}/{}, Iteration: {}/{}, Lr: {}, Loss: {}, Accuracy: {}".format(
+                    epoch + 1,
+                    opt.num_epochs,
+                    iter + 1,
+                    num_iter_per_epoch,
+                    optimizer.param_groups[0]['lr'],
+                    loss, training_metrics["accuracy"]))
             writer.add_scalar('Train/Loss', loss, epoch * num_iter_per_epoch + iter)
             writer.add_scalar('Train/Accuracy', training_metrics["accuracy"], epoch * num_iter_per_epoch + iter)
 

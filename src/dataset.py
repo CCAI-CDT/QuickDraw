@@ -6,6 +6,7 @@ import numpy as np
 
 from src.config import CLASSES
 
+image_cache = {}
 
 class MyDataset(Dataset):
     def __init__(self, root_path="data", total_images_per_class=10000, ratio=0.8, mode="train"):
@@ -25,10 +26,16 @@ class MyDataset(Dataset):
         return self.num_samples
 
     def __getitem__(self, item):
-        file_ = "{}/full_numpy_bitmap_{}.npy".format(self.root_path, CLASSES[int(item / self.num_images_per_class)])
-        image = np.load(file_).astype(np.float32)[self.offset + (item % self.num_images_per_class)]
+        global image_cache
+        class_name = CLASSES[int(item / self.num_images_per_class)]
+        if class_name not in image_cache:
+            file_ = "{}/full_numpy_bitmap_{}.npy".format(self.root_path, class_name)
+            print("Loading item {} -- {}".format(item, file_))
+            image_cache[class_name] = np.load(file_).astype(np.float32)
+        image = image_cache[class_name][self.offset + (item % self.num_images_per_class)]
         image /= 255
-        return image.reshape((1, 28, 28)), int(item / self.num_images_per_class)
+        resized_image = image.reshape((1, 28, 28)), int(item / self.num_images_per_class)
+        return resized_image
 
 
 if __name__ == "__main__":

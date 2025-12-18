@@ -1,3 +1,30 @@
+<!-- spell-checker:words quickdraw venv numpy tensorboard scikit-learn -->
+<!--
+
+From: https://github.com/vietnh1009/QuickDraw
+
+```bash
+# Setup
+python3 -m venv .venv  # 3.13.7, project used 3.6
+source .venv/bin/activate
+pip install torch numpy opencv-python scikit-learn tensorboardX
+
+# Training data
+# ...in `./data`, download from: https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap
+# ...classes in `config.py`:
+# ..."apple", "book", "bowtie", "candle", "cloud", "cup", "door", "envelope", "eyeglasses", "guitar", "hammer", "hat", "ice cream", "leaf", "scissors", "star", "t-shirt", "pants", "lightning", "tree"
+data/full_numpy_bitmap_book.npy
+
+# Training
+python train.py
+
+# Run
+python camera_app.py
+python painting_app.py
+```
+
+-->
+
 <p align="center">
  <h1 align="center">QuickDraw</h1>
 </p>
@@ -13,8 +40,8 @@ Here is my python source code for QuickDraw - an online game developed by google
 * **Run an app which you could draw on a canvas**
 
 ## Camera app
-In order to use this app, you need a pen (or any object) with blue, red or green color. When the pen (object) appears in front of camera, it will be catched and highlighted by an yellow circle. When you are ready for drawing, you need to press **space** button. When you want to stop drawing, press **space** again
-Below is the demo by running the sript **camera_app.py**:
+In order to use this app, you need a pen (or any object) with blue, red or green color. When the pen (object) appears in front of camera, it will be caught and highlighted by an yellow circle. When you are ready for drawing, you need to press **space** button. When you want to stop drawing, press **space** again
+Below is the demo by running the script **camera_app.py**:
 <p align="center">
   <img src="demo/quickdraw.gif" width=600><br/>
   <i>Camera app demo</i>
@@ -24,7 +51,7 @@ Below is the demo by running the sript **camera_app.py**:
 The script and demo will be released soon
 
 ## Dataset
-The dataset used for training my model could be found at [Quick Draw dataset] https://console.cloud.google.com/storage/browser/quickdraw_dataset/sketchrnn. Here I only picked up 20 files for 20 categories
+The dataset used for training my model could be found at [Quick Draw dataset](https://console.cloud.google.com/storage/browser/quickdraw_dataset/sketchrnn). Here I only picked up 20 files for 20 categories
 
 ## Categories:
 The table below shows 20 categories my model used:

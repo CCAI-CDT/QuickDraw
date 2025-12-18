@@ -4,6 +4,9 @@ from src.config import *
 from src.dataset import CLASSES
 import torch
 
+# Fix: pickle.UnpicklingError
+from src import model
+torch.serialization.add_safe_globals([model.QuickDraw, torch.nn.modules.container.Sequential, torch.nn.modules.conv.Conv2d, torch.nn.modules.activation.ReLU, torch.nn.modules.pooling.MaxPool2d, torch.nn.modules.linear.Linear, torch.nn.modules.dropout.Dropout])
 
 
 def main():
@@ -17,27 +20,36 @@ def main():
     cv2.namedWindow("Canvas")
     global ix, iy, is_drawing
     is_drawing = False
+    image_changed = True
 
     def paint_draw(event, x, y, flags, param):
         global ix, iy, is_drawing
+        global image_changed
         if event == cv2.EVENT_LBUTTONDOWN:
             is_drawing = True
             ix, iy = x, y
+            image_changed = True
         elif event == cv2.EVENT_MOUSEMOVE:
             if is_drawing == True:
                 cv2.line(image, (ix, iy), (x, y), WHITE_RGB, 5)
                 ix = x
                 iy = y
+                image_changed = True
         elif event == cv2.EVENT_LBUTTONUP:
             is_drawing = False
-            cv2.line(image, (ix, iy), (x, y), WHITE_RGB, 5)
+            # cv2.line(image, (ix, iy), (x, y), WHITE_RGB, 5)
             ix = x
             iy = y
+            image_changed = True
         return x, y
 
     cv2.setMouseCallback('Canvas', paint_draw)
     while (1):
-        cv2.imshow('Canvas', 255 - image)
+        # HACK: image_changed not being checked properly?
+        image_changed = True
+        if image_changed:
+            cv2.imshow('Canvas', 255 - image)
+            image_changed = False
         key = cv2.waitKey(10)
         if key == ord(" "):
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

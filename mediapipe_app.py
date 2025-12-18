@@ -16,6 +16,7 @@ else:
     model = torch.load("trained_models/whole_model_quickdraw", map_location=lambda storage, loc: storage)
 model.eval()
 predicted_class = None
+predicted_class_name = None
 
 cap = cv2.VideoCapture(0)
 points = deque(maxlen=512)
@@ -65,6 +66,10 @@ with mp_hands.Hands(
                             cropped_image = torch.from_numpy(cropped_image)
                             logits = model(cropped_image)
                             predicted_class = torch.argmax(logits[0])
+                            
+                            predicted_class_name = CLASSES[predicted_class]
+                            print("You are drawing: " + predicted_class_name)
+
                             points = deque(maxlen=512)
                             canvas = np.zeros((480, 640, 3), dtype=np.uint8)
                 else:
@@ -81,7 +86,7 @@ with mp_hands.Hands(
                     mp_drawing_styles.get_default_hand_landmarks_style(),
                     mp_drawing_styles.get_default_hand_connections_style())
                 if not is_drawing and is_shown:
-                    cv2.putText(image, 'You are drawing', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 5,
+                    cv2.putText(image, 'You are drawing ' + predicted_class_name + ' ', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 5,
                                 cv2.LINE_AA)
                     image[5:65, 490:550] = get_overlay(image[5:65, 490:550], class_images[predicted_class], (60, 60))
 

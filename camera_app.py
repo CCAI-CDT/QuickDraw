@@ -12,6 +12,10 @@ import torch
 from src.config import *
 from src.utils import get_images, get_overlay
 
+# Fix: pickle.UnpicklingError
+from src import model
+torch.serialization.add_safe_globals([model.QuickDraw, torch.nn.modules.container.Sequential, torch.nn.modules.conv.Conv2d, torch.nn.modules.activation.ReLU, torch.nn.modules.pooling.MaxPool2d, torch.nn.modules.linear.Linear, torch.nn.modules.dropout.Dropout])
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -53,6 +57,7 @@ def main(opt):
     # Load images for classes:
     class_images = get_images("images", CLASSES)
     predicted_class = None
+    predicted_class_name = None
 
     # Load model
     if torch.cuda.is_available():
@@ -80,11 +85,15 @@ def main(opt):
                 gaussian = cv2.GaussianBlur(median, (5, 5), 0)
                 # Otsu's thresholding
                 _, thresh = cv2.threshold(gaussian, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                _, contour_gs, _ = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+                # Fix: _, contour_gs, _ = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+                contour_gs, _hierarchy = cv2.findContours(thresh.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
                 if len(contour_gs):
                     contour = sorted(contour_gs, key=cv2.contourArea, reverse=True)[0]
                     # Check if the largest contour satisfy the condition of minimum area
-                    if cv2.contourArea(contour) > opt.area:
+                    area = cv2.contourArea(contour)
+                    print("Contour: Area = {}, OptArea = {}".format(area, opt.area))
+                    # HACK: Always process contour
+                    if True or area > opt.area:
                         x, y, w, h = cv2.boundingRect(contour)
                         image = canvas_gs[y:y + h, x:x + w]
                         image = cv2.resize(image, (28, 28))
@@ -92,7 +101,9 @@ def main(opt):
                         image = torch.from_numpy(image)
                         logits = model(image)
                         predicted_class = torch.argmax(logits[0])
-                        # print (CLASSES[predicted_class])
+
+                        predicted_class_name = CLASSES[predicted_class]
+                        print("You are drawing: " + predicted_class_name)
                         is_shown = True
                     else:
                         print("The object drawn is too small. Please draw a bigger one!")
@@ -110,7 +121,8 @@ def main(opt):
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
         mask = cv2.dilate(mask, kernel, iterations=1)
 
-        _, contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Fix:  _, contours, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _hierarchy = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Check to see if any contours are found
         if len(contours):
@@ -131,7 +143,7 @@ def main(opt):
                     cv2.line(frame, points[i - 1], points[i], color_pointer, 2)
 
         if is_shown:
-            cv2.putText(frame, 'You are drawing', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color_pointer, 5, cv2.LINE_AA)
+            cv2.putText(frame, 'You are drawing    ' + predicted_class_name + ' ', (100, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color_pointer, 5, cv2.LINE_AA)
             frame[5:65, 490:550] = get_overlay(frame[5:65, 490:550], class_images[predicted_class], (60,60))
 
 
