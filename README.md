@@ -80,6 +80,27 @@ Classes with a `_` prefix will not be included in the web page's class list.  If
 The url can have e.g. `#classes=test` appended to load the `classes-test.json` configuration file.
 
 
+## Using the image detection script
+
+1. In one terminal window, run the image detection script:
+    ```bash
+    source .venv/bin/activate
+    python detect_image.py --capture
+    ```
+
+2. In another terminal window, run the *watch* server:
+    ```bash
+    source .venv/bin/activate
+    python watch.py
+    ```
+
+3. In a browser window, open the detected image information page: [http://localhost:5555](http://localhost:5555)
+
+4. Focus the window running the image detection.
+
+5. Press <kbd>c</kbd>+<kbd>Enter</kbd> to re-run the calibration at any time (ensure the base page is in the camera's view).
+
+
 ## Run the example painting app
 
 ```bash
